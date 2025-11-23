@@ -1,37 +1,13 @@
-import sys, os
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-import pickle
-import pandas as pd
 import streamlit as st
-from pathlib import Path
+import pandas as pd
+import requests
 
 st.set_page_config(page_title="🧠 Depression Prediction", page_icon="🩺", layout="centered")
 
-@st.cache_resource
-def load_pipeline(path="pipe.pkl"):
-    """Load the trained ML pipeline"""
-    path = Path(path)
-    if not path.exists():
-        raise FileNotFoundError(f"Pipeline file not found: {path.resolve()}")
-    with open(path, "rb") as f:
-        pipe = pickle.load(f)
-    return pipe
-
-# Load model
-try:
-    pipe = load_pipeline("pipe.pkl")
-    st.success("✅ Model loaded successfully!")
-except Exception as e:
-    st.error("❌ Could not load pipeline (pipe.pkl). Make sure file is in the same folder as this script.")
-    st.exception(e)
-    st.stop()
-
-# App title and description
 st.title("🧠 Depression Prediction")
 st.write("Fill the form below to assess depression risk based on your inputs.")
 
-# Constants
-THRESHOLD = 0.24
+THRESHOLD = 0.24  # keep same threshold as backend
 
 # Input form
 with st.form(key="prediction_form"):
@@ -56,60 +32,50 @@ with st.form(key="prediction_form"):
 
 # Prediction logic
 if submit:
-    # Create input dataframe
     input_data = {
-        'Gender': gender,
-        'Age': age,
-        'Working Professional or Student': profession,
-        'Sleep Duration': sleep,
-        'Dietary Habits': dietary,
-        'Have you ever had suicidal thoughts ?': suicide,
-        'Work/Study Hours': work_hours,
-        'Financial Stress': financial,
-        'Family History of Mental Illness': family,
-        'Pressure': pressure,
-        'Satisfaction': satisfaction
+        "gender": gender,
+        "succide": suicide,
+        "age": age,
+        "work_hours": work_hours,
+        "profession": profession,
+        "sleep": sleep,
+        "financial": financial,
+        "family": family,
+        "pressure": pressure,
+        "dietary": dietary,
+        "satisfaction": satisfaction
     }
-    
-    input_df = pd.DataFrame([input_data])
 
-    # Show input preview
+    # Show input summary
     st.markdown("### 📊 Your Input Summary")
-    st.dataframe(input_df, use_container_width=True)
+    st.dataframe(pd.DataFrame([input_data]), use_container_width=True)
 
     try:
-        # Get prediction
-        if hasattr(pipe, "predict_proba"):
-            # Get probability prediction
-            probabilities = pipe.predict_proba(input_df)[0]
-            depression_probability = float(probabilities[1])  # Probability of depression class
-            
-            # Determine risk level
-            risk_status = "High Risk of Depression" if depression_probability >= THRESHOLD else "Low Risk of Depression"
-            
-            # Display results
-            st.markdown("### 📈 Prediction Results")
-            
-            # Risk status with color coding
-            if depression_probability >= THRESHOLD:
-                st.error(f"⚠️ **{risk_status}**")
-            else:
-                st.success(f"✅ **{risk_status}**")
-            
-            
-            
-        else:
-            # Fallback to simple prediction
-            prediction = pipe.predict(input_df)[0]
-            risk_status = "High Risk of Depression" if prediction == 1 else "Low Risk of Depression"
-            
-            st.markdown("### 📈 Prediction Results")
-            if prediction == 1:
-                st.error(f"⚠️ **{risk_status}**")
-            else:
-                st.success(f"✅ **{risk_status}**")
+        # Call FastAPI backend
+        API_URL = "http://127.0.0.1:8000/predict_depression/"
+        response = requests.post(API_URL, json=input_data)
+        response.raise_for_status()
+        result = response.json()
 
-        # Disclaimer
+        st.markdown("### 📈 Prediction Results")
+
+        # Display depending on backend response
+        if "depression_probability" in result:
+            prob = result["depression_probability"]
+            status = result["risk_status"]
+        else:
+            prob = None
+            status = result.get("risk_status", "Unknown")
+
+        if "High" in status:
+            st.error(f"⚠️ **{status}**")
+        else:
+            st.success(f"✅ **{status}**")
+
+        # Optional: show probability if available
+        if prob is not None:
+            st.info(f"Predicted depression probability: {prob:.2f}")
+
         st.info("""
         **ℹ️ Disclaimer:** This is a predictive model for assessment purposes only. 
         It is not a substitute for professional medical advice, diagnosis, or treatment. 
@@ -117,7 +83,7 @@ if submit:
         """)
 
     except Exception as e:
-        st.error("❌ Prediction failed. Please check your inputs and try again.")
+        st.error("❌ Prediction failed. Please make sure the backend is running.")
         st.exception(e)
 
 # Footer

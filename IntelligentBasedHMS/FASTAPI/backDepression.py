@@ -6,13 +6,14 @@ from pathlib import Path
 from typing import Annotated, Literal, Optional
 import pickle
 import pandas as pd
+import uvicorn
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
 threshold = 0.24  
 
 # Load Pipeline
-def load_pipeline(path=r"D:\Saad Project\pipe.pkl"):
+def load_pipeline(path=r"C:\Users\Muhammad's PC\Documents\saad\Intelligent Health Monitoring System\IntelligentBasedHMS\pipe.pkl"):
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"Pipeline file not found: {path.resolve()}")
@@ -21,7 +22,7 @@ def load_pipeline(path=r"D:\Saad Project\pipe.pkl"):
     return pipe
 
 try:
-    pipe = load_pipeline(r"D:\Saad Project\pipe.pkl")
+    pipe = load_pipeline(r"C:\Users\Muhammad's PC\Documents\saad\Intelligent Health Monitoring System\IntelligentBasedHMS\pipe.pkl")
 except Exception as e:
      print("Could not load pipeline (pipe.pkl). Make sure file is in the same folder as this script.")
 
@@ -74,3 +75,4 @@ def predict_depression(input_data: DepressionInput):
     status = "High Risk of Depression" if pred == 1 else "Low Risk of Depression"
 
     return JSONResponse(status_code=200, content={"depression_prediction": pred,"risk_status": status})
+ 
