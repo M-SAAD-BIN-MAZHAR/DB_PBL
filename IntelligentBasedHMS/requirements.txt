@@ -29,4 +29,5 @@ langgraph-sdk
 langgraph-checkpoint
 langgraph-checkpoint-sqlite
 psycopg2
-
+python-multipart
+"uvicorn[standard]" fastapi requests pillow tensorflow
