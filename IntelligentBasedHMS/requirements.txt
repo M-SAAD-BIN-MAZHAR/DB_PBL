@@ -28,6 +28,10 @@ langgraph-prebuilt
 langgraph-sdk
 langgraph-checkpoint
 langgraph-checkpoint-sqlite
-psycopg2
+psycopg2-binary
 python-multipart
-"uvicorn[standard]" fastapi requests pillow tensorflow
+uvicorn[standard] 
+fastapi 
+requests
+pillow 
+tensorflow
