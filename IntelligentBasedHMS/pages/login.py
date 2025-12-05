@@ -32,6 +32,7 @@ def insert_patient_data(patient_id, first_name, last_name, email, phone, address
         conn.close()
         return True
     except Exception as e:
+        conn.rollback()
         st.error(f"Database error: {e}")
         return False
 
@@ -306,6 +307,7 @@ def show_login_form():
                 st.success("✅ Login Successful!")
                 st.rerun()
             else:
+                
                 st.error("❌ Invalid email or password")
         except Exception as e:
             st.error(f"An error occurred during login: {e}")

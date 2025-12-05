@@ -7,7 +7,7 @@ from uuid import uuid4
 from fastapi.middleware.cors import CORSMiddleware
 
 # Import your existing LangGraph chatbot & retrieve function
-from .backEnd import chatbot, retrieve_all_threads
+from pages.backEnd import chatbot, retrieve_all_threads
 from langchain_core.messages import HumanMessage
 
 app = FastAPI(title="Medical Assistant Chatbot API")

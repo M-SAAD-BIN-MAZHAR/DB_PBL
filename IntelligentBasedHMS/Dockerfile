@@ -1,19 +1,30 @@
-FROM python:3.11-slim-buster
+# Use Python 3.11 slim image
+FROM python:3.11-slim-bookworm
 
 # Set working directory
 WORKDIR /app
 
-# Copy only requirements first (for caching)
+# Install system dependencies required by TensorFlow and other packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first (Cache optimization)
 COPY requirements.txt /app/
 
-# Upgrade pip and install dependencies
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Copy pre-downloaded Python packages
+COPY deps /deps
 
-# Copy the rest of the app
+# Install using local wheels (FAST, NO INTERNET)
+RUN python -m pip install --upgrade pip && \
+    pip install --no-index --find-links=/deps -r requirements.txt
+
+# Copy your full project
 COPY . /app
 
-# Expose Streamlit port
+# Expose Streamlit default port
 EXPOSE 8501
 
 # Run Streamlit

@@ -28,18 +28,32 @@ def create_table():
     curr = conn.cursor()
     create_table_query="""
 CREATE TABLE IF NOT EXISTS PATIENT_DATA (
-Patient_ID INTEGER PRIMARY KEY,
-First_Name VARCHAR(50),
-Last_Name VARCHAR(50),
-Email VARCHAR(100) UNIQUE,
-Phone VARCHAR(15),
-Home_Address TEXT,
-Emergency_Contact VARCHAR(15),
-Date_of_Birth DATE,
-Gender VARCHAR(10),
-Blood_Type VARCHAR(10),
-Password VARCHAR(255) UNIQUE
-)
+    Patient_ID INTEGER PRIMARY KEY,                                
+
+    First_Name VARCHAR(50) NOT NULL,
+    Last_Name  VARCHAR(50) NOT NULL,
+
+    Email VARCHAR(100) UNIQUE NOT NULL,                            
+    Phone VARCHAR(15) NOT NULL,
+
+    Home_Address TEXT DEFAULT 'Not Provided',                      
+
+    Emergency_Contact VARCHAR(15),
+
+    Date_of_Birth DATE NOT NULL,
+
+    Gender VARCHAR(10) NOT NULL 
+        CHECK (Gender IN ('Male', 'Female', 'Other')),             
+
+    Blood_Type VARCHAR(10) 
+        CHECK (Blood_Type IN 
+              ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),  
+
+    Password VARCHAR(255) UNIQUE NOT NULL                        
+
+         
+);
+
 
 """
     curr.execute(create_table_query)
